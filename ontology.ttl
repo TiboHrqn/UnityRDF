@@ -1,0 +1,46 @@
+@prefix ww: <http://unityRDF.org/ontology#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+ww:unityRDFOntology a owl:Ontology .
+
+ww:Entity a owl:Class ;
+    rdfs:label "Entity" .
+
+ww:Object a owl:Class ;
+    rdfs:subClassOf ww:Entity ;
+    rdfs:label "Object" .
+
+ww:Agent a owl:Class ;
+    rdfs:subClassOf ww:Object ;
+    rdfs:label "Agent" .
+
+ww:Door a owl:Class ;
+    rdfs:subClassOf ww:Object ;
+    rdfs:label "Door" .
+
+ww:Key a owl:Class ;
+    rdfs:subClassOf ww:Object ;
+    rdfs:label "Key" .
+
+ww:Room a owl:Class ;
+    rdfs:subClassOf ww:Entity ;
+    rdfs:label "Room" .
+
+ww:isOpen a owl:DatatypeProperty ;
+    rdfs:domain ww:Door ;
+    rdfs:range xsd:boolean ;
+    rdfs:label "isOpen" .
+
+ww:isLocked a owl:DatatypeProperty ;
+    rdfs:domain ww:Door ;
+    rdfs:range xsd:boolean ;
+    rdfs:label "isLocked" .
+
+ww:locatedIn a owl:ObjectProperty ;
+    rdfs:domain ww:Object ;
+    rdfs:range ww:Room ;
+    rdfs:label "locatedIn" .
+
