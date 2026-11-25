@@ -1,7 +1,7 @@
 using UnityEngine;
 
 [OntologyClass("Agent")]
-public class Agent : Object
+public class Agent
 {
     
 }

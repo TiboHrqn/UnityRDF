@@ -38,7 +38,8 @@ public static class OntologyGenerator
             $"OntologyGenerator: ontologie générée avec succès. " +
             $"{scanner.Classes.Count} classes, " +
             $"{scanner.Properties.Count} propriétés, " +
-            $"{scanner.Relations.Count} relations.\n{path}"
+            $"{scanner.Relations.Count} relations, " + 
+            $"{scanner.Actions.Count} actions.\n{path}"
         );
     }
 }
