@@ -1,6 +1,6 @@
 using System;
 
-[AttributeUsage(AttributeTargets.Class | AttributeTargets.Interface)]
+[AttributeUsage(AttributeTargets.Class)]
 public class OntologyClassAttribute : Attribute
 {
     public string Name { get; }
@@ -37,6 +37,25 @@ public class OntologyRelationAttribute : Attribute
     {
         Name = name;
         TargetType = targetType;
+        Description = description;
+    }
+}
+
+[AttributeUsage(AttributeTargets.Interface)]
+public class OntologyCapabilityAttribute : Attribute
+{
+    public string Name { get; }
+    public string Description { get; }
+
+    public OntologyCapabilityAttribute(string name)
+    {
+        Name = name;
+        Description = string.Empty;
+    }
+
+    public OntologyCapabilityAttribute(string name, string description)
+    {
+        Name = name;
         Description = description;
     }
 }

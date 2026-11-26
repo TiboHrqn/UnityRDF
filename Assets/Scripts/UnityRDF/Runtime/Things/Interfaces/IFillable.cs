@@ -1,3 +1,4 @@
+[OntologyCapability("Fillable")]
 public interface IFillable
 {
     [OntologyProperty("isFull")]

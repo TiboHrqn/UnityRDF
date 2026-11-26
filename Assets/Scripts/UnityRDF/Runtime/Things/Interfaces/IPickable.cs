@@ -1,3 +1,4 @@
+[OntologyCapability("Pickable")]
 public interface IPickable
 {
     [OntologyProperty("isPickedUp")]

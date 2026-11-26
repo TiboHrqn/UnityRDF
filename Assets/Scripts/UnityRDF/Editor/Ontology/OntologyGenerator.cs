@@ -37,6 +37,7 @@ public static class OntologyGenerator
         Debug.Log(
             $"OntologyGenerator: ontologie générée avec succès. " +
             $"{scanner.Classes.Count} classes, " +
+            $"{scanner.Capabilities.Count} capacités, " +
             $"{scanner.Properties.Count} propriétés, " +
             $"{scanner.Relations.Count} relations, " + 
             $"{scanner.Actions.Count} actions.\n{path}"

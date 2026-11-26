@@ -1,3 +1,4 @@
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -6,12 +7,31 @@ using UnityEngine.Assemblies;
 
 public class OntologyScanner
 {
+    // --------------------------------------------------
+    // INFORMATIONS SUR LES CLASSES
+    // --------------------------------------------------
+
     public class ClassInfo
     {
         public Type Type;
         public OntologyClassAttribute Attribute;
         public Type ParentType;
     }
+
+    // --------------------------------------------------
+    // INFORMATIONS SUR LES CAPACITÉS
+    // --------------------------------------------------
+
+    public class CapabilityInfo
+    {
+        public Type Type;
+        public OntologyCapabilityAttribute Attribute;
+        public List<Type> ParentCapabilities = new();
+    }
+
+    // --------------------------------------------------
+    // PROPRIÉTÉS
+    // --------------------------------------------------
 
     public class PropertyInfo
     {
@@ -21,6 +41,10 @@ public class OntologyScanner
         public Type RangeType;
     }
 
+    // --------------------------------------------------
+    // RELATIONS
+    // --------------------------------------------------
+
     public class RelationInfo
     {
         public string Name;
@@ -29,14 +53,20 @@ public class OntologyScanner
         public Type TargetType;
     }
 
-    // Un paramètre de l'action : actor, item, door, key...
+    // --------------------------------------------------
+    // PARAMÈTRES DES ACTIONS
+    // --------------------------------------------------
+
     public class ParameterInfo
     {
         public string Role;
         public Type ParameterType;
     }
 
-    // Une précondition : predicate(arguments), positive ou négative.
+    // --------------------------------------------------
+    // PRÉCONDITIONS
+    // --------------------------------------------------
+
     public class ConditionInfo
     {
         public string Predicate;
@@ -44,12 +74,19 @@ public class OntologyScanner
         public bool IsPositive;
     }
 
-    // Un effet ajouté ou supprimé par l'action.
+    // --------------------------------------------------
+    // EFFETS STRIPS
+    // --------------------------------------------------
+
     public class EffectInfo
     {
         public string Predicate;
         public string[] Arguments;
     }
+
+    // --------------------------------------------------
+    // ACTIONS
+    // --------------------------------------------------
 
     public class ActionInfo
     {
@@ -63,14 +100,28 @@ public class OntologyScanner
         public List<EffectInfo> DeleteEffects = new();
     }
 
+    // --------------------------------------------------
+    // RÉSULTATS DU SCAN
+    // --------------------------------------------------
+
     public List<ClassInfo> Classes { get; } = new();
+
+    public List<CapabilityInfo> Capabilities { get; } = new();
+
     public List<PropertyInfo> Properties { get; private set; } = new();
+
     public List<RelationInfo> Relations { get; private set; } = new();
+
     public List<ActionInfo> Actions { get; private set; } = new();
+
+    // --------------------------------------------------
+    // SCAN PRINCIPAL
+    // --------------------------------------------------
 
     public void Scan()
     {
         Classes.Clear();
+        Capabilities.Clear();
         Properties.Clear();
         Relations.Clear();
         Actions.Clear();
@@ -85,7 +136,9 @@ public class OntologyScanner
             }
             catch (ReflectionTypeLoadException exception)
             {
-                types = exception.Types.Where(t => t != null).ToArray();
+                types = exception.Types
+                    .Where(t => t != null)
+                    .ToArray();
             }
             catch
             {
@@ -94,164 +147,272 @@ public class OntologyScanner
 
             foreach (Type type in types)
             {
-                var attribute =
-                    type.GetCustomAttribute<OntologyClassAttribute>(false);
-
-                if (attribute == null)
+                if (type == null)
                     continue;
 
-                Type parent = type.BaseType;
+                // Les classes métier
+                var classAttribute =
+                    type.GetCustomAttribute<OntologyClassAttribute>(false);
 
-                while (parent != null &&
-                       parent.GetCustomAttribute<OntologyClassAttribute>(false) == null)
+                if (classAttribute != null && type.IsClass)
                 {
-                    parent = parent.BaseType;
+                    Type parent = type.BaseType;
+
+                    while (parent != null &&
+                           parent.GetCustomAttribute<OntologyClassAttribute>(false) == null)
+                    {
+                        parent = parent.BaseType;
+                    }
+
+                    Classes.Add(new ClassInfo
+                    {
+                        Type = type,
+                        Attribute = classAttribute,
+                        ParentType = parent
+                    });
                 }
 
-                Classes.Add(new ClassInfo
+                // Les interfaces de capacités
+                var capabilityAttribute =
+                    type.GetCustomAttribute<OntologyCapabilityAttribute>(false);
+
+                if (capabilityAttribute != null && type.IsInterface)
                 {
-                    Type = type,
-                    Attribute = attribute,
-                    ParentType = parent
-                });
+                    Capabilities.Add(new CapabilityInfo
+                    {
+                        Type = type,
+                        Attribute = capabilityAttribute
+                    });
+                }
             }
         }
 
+        ScanCapabilityInheritance();
         ScanMembers();
         ScanActions();
+
+        SortResults();
     }
+
+    // --------------------------------------------------
+    // HÉRITAGE DES CAPACITÉS
+    // --------------------------------------------------
+
+    private void ScanCapabilityInheritance()
+    {
+        foreach (CapabilityInfo capability in Capabilities)
+        {
+            capability.ParentCapabilities.Clear();
+
+            foreach (Type parentInterface in capability.Type.GetInterfaces())
+            {
+                var parentAttribute =
+                    parentInterface.GetCustomAttribute<OntologyCapabilityAttribute>(false);
+
+                if (parentAttribute != null)
+                {
+                    capability.ParentCapabilities.Add(parentInterface);
+                }
+            }
+        }
+    }
+
+    // --------------------------------------------------
+    // SCAN DES PROPRIÉTÉS ET RELATIONS
+    // --------------------------------------------------
 
     private void ScanMembers()
     {
+        // Classes métier
         foreach (ClassInfo classInfo in Classes)
         {
-            foreach (var property in classInfo.Type.GetProperties(
-                         BindingFlags.Public | BindingFlags.Instance))
-            {
-                var ontologyProperty =
-                    property.GetCustomAttribute<OntologyPropertyAttribute>(true);
-
-                var ontologyRelation =
-                    property.GetCustomAttribute<OntologyRelationAttribute>(true);
-
-                Type domain = property.DeclaringType ?? classInfo.Type;
-
-                if (ontologyProperty != null)
-                {
-                    Properties.Add(new PropertyInfo
-                    {
-                        Name = ontologyProperty.Name,
-                        Description = ontologyProperty.Description,
-                        DomainType = domain,
-                        RangeType = property.PropertyType
-                    });
-                }
-
-                if (ontologyRelation != null)
-                {
-                    Relations.Add(new RelationInfo
-                    {
-                        Name = ontologyRelation.Name,
-                        Description = ontologyRelation.Description,
-                        DomainType = domain,
-                        TargetType = ontologyRelation.TargetType
-                    });
-                }
-            }
+            ScanTypeMembers(classInfo.Type);
         }
 
+        // Interfaces de capacités
+        foreach (CapabilityInfo capability in Capabilities)
+        {
+            ScanTypeMembers(capability.Type);
+        }
+
+        // Élimination des doublons
         Properties = Properties
-            .GroupBy(p => $"{p.Name}|{p.DomainType}|{p.RangeType}")
+            .GroupBy(p =>
+                $"{p.Name}|{p.DomainType.AssemblyQualifiedName}|{p.RangeType.AssemblyQualifiedName}")
             .Select(g => g.First())
             .ToList();
 
         Relations = Relations
-            .GroupBy(r => $"{r.Name}|{r.DomainType}|{r.TargetType}")
+            .GroupBy(r =>
+                $"{r.Name}|{r.DomainType.AssemblyQualifiedName}|{r.TargetType.AssemblyQualifiedName}")
             .Select(g => g.First())
             .ToList();
     }
 
-    private void ScanActions()
+    private void ScanTypeMembers(Type type)
     {
-        // Une même interface peut être implémentée par plusieurs classes.
-        // La définition de l'action ne doit être enregistrée qu'une fois.
-        var scannedMethods = new HashSet<string>();
-
-        foreach (ClassInfo classInfo in Classes)
+        foreach (var property in type.GetProperties(
+                     BindingFlags.Public |
+                     BindingFlags.Instance |
+                     BindingFlags.DeclaredOnly))
         {
-            Type[] interfaces = classInfo.Type.GetInterfaces();
+            var ontologyProperty =
+                property.GetCustomAttribute<OntologyPropertyAttribute>(false);
 
-            foreach (Type interfaceType in interfaces)
+            var ontologyRelation =
+                property.GetCustomAttribute<OntologyRelationAttribute>(false);
+
+            // Le domaine est le type directement déclaré.
+            // Pour une interface, il s'agit donc de la capacité.
+            Type domain = type;
+
+            if (ontologyProperty != null)
             {
-                foreach (MethodInfo method in interfaceType.GetMethods())
+                Properties.Add(new PropertyInfo
                 {
-                    var actionAttribute =
-                        method.GetCustomAttribute<OntologyActionAttribute>(false);
+                    Name = ontologyProperty.Name,
+                    Description = ontologyProperty.Description,
+                    DomainType = domain,
+                    RangeType = property.PropertyType
+                });
+            }
 
-                    if (actionAttribute == null)
-                        continue;
-
-                    string methodKey =
-                        $"{interfaceType.AssemblyQualifiedName}|{method.Name}";
-
-                    if (!scannedMethods.Add(methodKey))
-                        continue;
-
-                    var action = new ActionInfo
-                    {
-                        Name = actionAttribute.Name,
-                        DeclaringInterface = interfaceType,
-                        Method = method
-                    };
-
-                    // Paramètres de l'action
-                    foreach (var parameterAttribute in
-                             method.GetCustomAttributes<OntologyParameterAttribute>(false))
-                    {
-                        action.Parameters.Add(new ParameterInfo
-                        {
-                            Role = parameterAttribute.Role,
-                            ParameterType = parameterAttribute.ParameterType
-                        });
-                    }
-
-                    // Préconditions
-                    foreach (var conditionAttribute in
-                             method.GetCustomAttributes<OntologyPreConditionAttribute>(false))
-                    {
-                        action.Preconditions.Add(new ConditionInfo
-                        {
-                            Predicate = conditionAttribute.Predicate,
-                            Arguments = conditionAttribute.Arguments ?? Array.Empty<string>(),
-                            IsPositive = conditionAttribute.ConditionType
-                        });
-                    }
-
-                    // Effets ajoutés
-                    foreach (var effectAttribute in
-                             method.GetCustomAttributes<OntologyAddEffectAttribute>(false))
-                    {
-                        action.AddEffects.Add(new EffectInfo
-                        {
-                            Predicate = effectAttribute.Predicate,
-                            Arguments = effectAttribute.Arguments ?? Array.Empty<string>()
-                        });
-                    }
-
-                    // Effets supprimés
-                    foreach (var effectAttribute in
-                             method.GetCustomAttributes<OntologyDeleteEffectAttribute>(false))
-                    {
-                        action.DeleteEffects.Add(new EffectInfo
-                        {
-                            Predicate = effectAttribute.Predicate,
-                            Arguments = effectAttribute.Arguments ?? Array.Empty<string>()
-                        });
-                    }
-
-                    Actions.Add(action);
-                }
+            if (ontologyRelation != null)
+            {
+                Relations.Add(new RelationInfo
+                {
+                    Name = ontologyRelation.Name,
+                    Description = ontologyRelation.Description,
+                    DomainType = domain,
+                    TargetType = ontologyRelation.TargetType
+                });
             }
         }
+    }
+
+    // --------------------------------------------------
+    // SCAN DES ACTIONS
+    // --------------------------------------------------
+
+    private void ScanActions()
+    {
+        var scannedMethods = new HashSet<string>();
+
+        // Les actions sont découvertes directement sur les capacités.
+        foreach (CapabilityInfo capability in Capabilities)
+        {
+            Type interfaceType = capability.Type;
+
+            foreach (MethodInfo method in interfaceType.GetMethods(
+                         BindingFlags.Public |
+                         BindingFlags.Instance |
+                         BindingFlags.DeclaredOnly))
+            {
+                var actionAttribute =
+                    method.GetCustomAttribute<OntologyActionAttribute>(false);
+
+                if (actionAttribute == null)
+                    continue;
+
+                string methodKey =
+                    $"{method.DeclaringType?.AssemblyQualifiedName}|{method.Name}";
+
+                if (!scannedMethods.Add(methodKey))
+                    continue;
+
+                var action = new ActionInfo
+                {
+                    Name = actionAttribute.Name,
+                    DeclaringInterface = interfaceType,
+                    Method = method
+                };
+
+                ScanActionParameters(method, action);
+                ScanActionPreconditions(method, action);
+                ScanActionEffects(method, action);
+
+                Actions.Add(action);
+            }
+        }
+    }
+
+    private void ScanActionParameters(
+        MethodInfo method,
+        ActionInfo action)
+    {
+        foreach (var attribute in
+                 method.GetCustomAttributes<OntologyParameterAttribute>(false))
+        {
+            action.Parameters.Add(new ParameterInfo
+            {
+                Role = attribute.Role,
+                ParameterType = attribute.ParameterType
+            });
+        }
+    }
+
+    private void ScanActionPreconditions(
+        MethodInfo method,
+        ActionInfo action)
+    {
+        foreach (var attribute in
+                 method.GetCustomAttributes<OntologyPreConditionAttribute>(false))
+        {
+            action.Preconditions.Add(new ConditionInfo
+            {
+                Predicate = attribute.Predicate,
+                Arguments = attribute.Arguments ?? Array.Empty<string>(),
+                IsPositive = attribute.ConditionType
+            });
+        }
+    }
+
+    private void ScanActionEffects(
+        MethodInfo method,
+        ActionInfo action)
+    {
+        foreach (var attribute in
+                 method.GetCustomAttributes<OntologyAddEffectAttribute>(false))
+        {
+            action.AddEffects.Add(new EffectInfo
+            {
+                Predicate = attribute.Predicate,
+                Arguments = attribute.Arguments ?? Array.Empty<string>()
+            });
+        }
+
+        foreach (var attribute in
+                 method.GetCustomAttributes<OntologyDeleteEffectAttribute>(false))
+        {
+            action.DeleteEffects.Add(new EffectInfo
+            {
+                Predicate = attribute.Predicate,
+                Arguments = attribute.Arguments ?? Array.Empty<string>()
+            });
+        }
+    }
+
+    // --------------------------------------------------
+    // TRI DES RÉSULTATS
+    // --------------------------------------------------
+
+    private void SortResults()
+    {
+        Classes.Sort((a, b) =>
+            string.Compare(a.Attribute.Name, b.Attribute.Name,
+                StringComparison.Ordinal));
+
+        Capabilities.Sort((a, b) =>
+            string.Compare(a.Attribute.Name, b.Attribute.Name,
+                StringComparison.Ordinal));
+
+        Properties.Sort((a, b) =>
+            string.Compare(a.Name, b.Name, StringComparison.Ordinal));
+
+        Relations.Sort((a, b) =>
+            string.Compare(a.Name, b.Name, StringComparison.Ordinal));
+
+        Actions.Sort((a, b) =>
+            string.Compare(a.Name, b.Name, StringComparison.Ordinal));
     }
 }

@@ -1,3 +1,4 @@
+[OntologyCapability("Openable")]
 public interface IOpenable
 {
     [OntologyProperty("isOpen")]
