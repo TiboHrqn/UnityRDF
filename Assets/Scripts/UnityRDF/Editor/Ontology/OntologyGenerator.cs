@@ -19,12 +19,7 @@ public static class OntologyGenerator
 
         string turtle = TurtleSerializer.Serialize(scanner);
 
-        string path = EditorUtility.SaveFilePanel(
-            "Generate UnityRDF Ontology",
-            Application.dataPath,
-            "ontology",
-            "ttl"
-        );
+        string path = EditorUtility.SaveFilePanel("Generate UnityRDF Ontology", Application.dataPath, "ontology", "ttl");
 
         if (string.IsNullOrEmpty(path))
             return;

@@ -13,36 +13,65 @@ strips:Parameter a owl:Class .
 strips:Fact a owl:Class .
 strips:Argument a owl:Class .
 
-strips:name a owl:DatatypeProperty .
-strips:declaredOn a owl:ObjectProperty .
-strips:parameter a owl:ObjectProperty .
-strips:role a owl:DatatypeProperty .
-strips:parameterType a owl:ObjectProperty .
-strips:precondition a owl:ObjectProperty .
-strips:addEffect a owl:ObjectProperty .
-strips:deleteEffect a owl:ObjectProperty .
-strips:predicate a owl:ObjectProperty .
-strips:argument a owl:ObjectProperty .
-strips:position a owl:DatatypeProperty .
-strips:positive a owl:DatatypeProperty .
+strips:name a owl:DatatypeProperty ;
+    rdfs:range xsd:string .
+strips:declaredOn a owl:ObjectProperty ;
+    rdfs:domain strips:Action ;
+    rdfs:range owl:Class .
+strips:parameter a owl:ObjectProperty ;
+    rdfs:domain strips:Action ;
+    rdfs:range strips:Parameter .
+strips:role a owl:DatatypeProperty ;
+    rdfs:range xsd:string .
+strips:parameterType a owl:ObjectProperty ;
+    rdfs:domain strips:Parameter ;
+    rdfs:range owl:Class .
+strips:position a owl:DatatypeProperty ;
+    rdfs:range xsd:integer .
+strips:methodPosition a owl:DatatypeProperty ;
+    rdfs:range xsd:integer .
+strips:isTarget a owl:DatatypeProperty ;
+    rdfs:range xsd:boolean .
+strips:precondition a owl:ObjectProperty ;
+    rdfs:domain strips:Action ;
+    rdfs:range strips:Fact .
+strips:addEffect a owl:ObjectProperty ;
+    rdfs:domain strips:Action ;
+    rdfs:range strips:Fact .
+strips:deleteEffect a owl:ObjectProperty ;
+    rdfs:domain strips:Action ;
+    rdfs:range strips:Fact .
+strips:predicate a owl:ObjectProperty ;
+    rdfs:domain strips:Fact ;
+    rdfs:range rdf:Property .
+strips:argument a owl:ObjectProperty ;
+    rdfs:domain strips:Fact ;
+    rdfs:range strips:Argument .
+strips:positive a owl:DatatypeProperty ;
+    rdfs:range xsd:boolean .
 
 ww:Agent a owl:Class ;
+    rdfs:subClassOf ww:SmartObject ;
+    rdfs:subClassOf ww:MoveableTo ;
     rdfs:label "Agent" .
 
 ww:Bottle a owl:Class ;
     rdfs:subClassOf ww:SmartObject ;
     rdfs:subClassOf ww:Drinkable ;
     rdfs:subClassOf ww:Fillable ;
+    rdfs:subClassOf ww:MoveableTo ;
     rdfs:subClassOf ww:Pickable ;
     rdfs:label "Bottle" .
 
 ww:Door a owl:Class ;
     rdfs:subClassOf ww:SmartObject ;
+    rdfs:subClassOf ww:MoveableTo ;
     rdfs:subClassOf ww:Openable ;
     rdfs:label "Door" .
 
 ww:Key a owl:Class ;
     rdfs:subClassOf ww:SmartObject ;
+    rdfs:subClassOf ww:MoveableTo ;
     rdfs:subClassOf ww:Pickable ;
     rdfs:label "Key" .
 
@@ -50,6 +79,7 @@ ww:Room a owl:Class ;
     rdfs:label "Room" .
 
 ww:SmartObject a owl:Class ;
+    rdfs:subClassOf ww:MoveableTo ;
     rdfs:label "SmartObject" .
 
 ww:Drinkable a owl:Class ;
@@ -58,11 +88,19 @@ ww:Drinkable a owl:Class ;
 ww:Fillable a owl:Class ;
     rdfs:label "Fillable" .
 
+ww:MoveableTo a owl:Class ;
+    rdfs:label "MoveableTo" .
+
 ww:Openable a owl:Class ;
     rdfs:label "Openable" .
 
 ww:Pickable a owl:Class ;
     rdfs:label "Pickable" .
+
+ww:canMove a owl:DatatypeProperty ;
+    rdfs:domain ww:Agent ;
+    rdfs:range xsd:boolean ;
+    rdfs:label "canMove" .
 
 ww:id a owl:DatatypeProperty ;
     rdfs:domain ww:SmartObject ;
@@ -74,15 +112,30 @@ ww:isFull a owl:DatatypeProperty ;
     rdfs:range xsd:boolean ;
     rdfs:label "isFull" .
 
+ww:isLocked a owl:DatatypeProperty ;
+    rdfs:domain ww:Openable ;
+    rdfs:range xsd:boolean ;
+    rdfs:label "isLocked" .
+
 ww:isOpen a owl:DatatypeProperty ;
     rdfs:domain ww:Openable ;
     rdfs:range xsd:boolean ;
     rdfs:label "isOpen" .
 
-ww:isPickedUp a owl:DatatypeProperty ;
-    rdfs:domain ww:Pickable ;
-    rdfs:range xsd:boolean ;
-    rdfs:label "isPickedUp" .
+ww:canReach a owl:ObjectProperty ;
+    rdfs:domain ww:Agent ;
+    rdfs:range ww:SmartObject ;
+    rdfs:label "canReach" .
+
+ww:hasInInventory a owl:ObjectProperty ;
+    rdfs:domain ww:Agent ;
+    rdfs:range ww:SmartObject ;
+    rdfs:label "hasInInventory" .
+
+ww:isNear a owl:ObjectProperty ;
+    rdfs:domain ww:Agent ;
+    rdfs:range ww:SmartObject ;
+    rdfs:label "isNear" .
 
 ww:locatedIn a owl:ObjectProperty ;
     rdfs:domain ww:SmartObject ;
@@ -94,182 +147,511 @@ ww:requiresKey a owl:ObjectProperty ;
     rdfs:range ww:Key ;
     rdfs:label "requiresKey" .
 
-_:action0 a strips:Action .
-_:action0 strips:name "Drink" .
-_:action0 strips:declaredOn ww:Drinkable .
+_:action0 a strips:Action ;
+    strips:name "Close" ;
+    strips:declaredOn ww:Openable .
 _:action0 strips:parameter _:parameter1 .
 _:parameter1 a strips:Parameter ;
-    strips:role "actor" ;
+    strips:role "target" ;
     strips:position "0"^^xsd:integer ;
-    strips:parameterType ww:Agent .
+    strips:methodPosition "-1"^^xsd:integer ;
+    strips:isTarget "true"^^xsd:boolean ;
+    strips:parameterType ww:Openable .
 _:action0 strips:parameter _:parameter2 .
 _:parameter2 a strips:Parameter ;
-    strips:role "bottle" ;
+    strips:role "actor" ;
     strips:position "1"^^xsd:integer ;
-    strips:parameterType ww:Drinkable .
+    strips:methodPosition "0"^^xsd:integer ;
+    strips:isTarget "false"^^xsd:boolean ;
+    strips:parameterType ww:Agent .
 _:fact3 a strips:Fact ;
-    strips:predicate ww:isFull ;
+    strips:predicate ww:isOpen ;
     strips:positive "true"^^xsd:boolean .
 _:fact3 strips:argument _:argument4 .
 _:argument4 a strips:Argument ;
     strips:position "0"^^xsd:integer ;
-    strips:role "bottle" .
+    strips:role "target" .
 _:action0 strips:precondition _:fact3 .
 _:fact5 a strips:Fact ;
-    strips:predicate ww:isFull ;
+    strips:predicate ww:isNear ;
     strips:positive "true"^^xsd:boolean .
 _:fact5 strips:argument _:argument6 .
 _:argument6 a strips:Argument ;
     strips:position "0"^^xsd:integer ;
-    strips:role "bottle" .
-_:action0 strips:deleteEffect _:fact5 .
-
-_:action7 a strips:Action .
-_:action7 strips:name "Drop" .
-_:action7 strips:declaredOn ww:Pickable .
-_:action7 strips:parameter _:parameter8 .
-_:parameter8 a strips:Parameter ;
-    strips:role "actor" ;
-    strips:position "0"^^xsd:integer ;
-    strips:parameterType ww:Agent .
-_:action7 strips:parameter _:parameter9 .
-_:parameter9 a strips:Parameter ;
-    strips:role "item" ;
+    strips:role "actor" .
+_:fact5 strips:argument _:argument7 .
+_:argument7 a strips:Argument ;
     strips:position "1"^^xsd:integer ;
-    strips:parameterType ww:Pickable .
-_:fact10 a strips:Fact ;
-    strips:predicate ww:isPickedUp ;
-    strips:positive "true"^^xsd:boolean .
-_:fact10 strips:argument _:argument11 .
-_:argument11 a strips:Argument ;
-    strips:position "0"^^xsd:integer ;
-    strips:role "item" .
-_:action7 strips:precondition _:fact10 .
-_:fact12 a strips:Fact ;
-    strips:predicate ww:isPickedUp ;
-    strips:positive "true"^^xsd:boolean .
-_:fact12 strips:argument _:argument13 .
-_:argument13 a strips:Argument ;
-    strips:position "0"^^xsd:integer ;
-    strips:role "item" .
-_:action7 strips:deleteEffect _:fact12 .
-
-_:action14 a strips:Action .
-_:action14 strips:name "Fill" .
-_:action14 strips:declaredOn ww:Fillable .
-_:action14 strips:parameter _:parameter15 .
-_:parameter15 a strips:Parameter ;
-    strips:role "actor" ;
-    strips:position "0"^^xsd:integer ;
-    strips:parameterType ww:Agent .
-_:action14 strips:parameter _:parameter16 .
-_:parameter16 a strips:Parameter ;
-    strips:role "container" ;
-    strips:position "1"^^xsd:integer ;
-    strips:parameterType ww:Fillable .
-_:fact17 a strips:Fact ;
-    strips:predicate ww:isFull ;
-    strips:positive "false"^^xsd:boolean .
-_:fact17 strips:argument _:argument18 .
-_:argument18 a strips:Argument ;
-    strips:position "0"^^xsd:integer ;
-    strips:role "container" .
-_:action14 strips:precondition _:fact17 .
-_:fact19 a strips:Fact ;
-    strips:predicate ww:isFull ;
-    strips:positive "true"^^xsd:boolean .
-_:fact19 strips:argument _:argument20 .
-_:argument20 a strips:Argument ;
-    strips:position "0"^^xsd:integer ;
-    strips:role "container" .
-_:action14 strips:addEffect _:fact19 .
-
-_:action21 a strips:Action .
-_:action21 strips:name "Open" .
-_:action21 strips:declaredOn ww:Openable .
-_:action21 strips:parameter _:parameter22 .
-_:parameter22 a strips:Parameter ;
-    strips:role "actor" ;
-    strips:position "0"^^xsd:integer ;
-    strips:parameterType ww:Agent .
-_:action21 strips:parameter _:parameter23 .
-_:parameter23 a strips:Parameter ;
-    strips:role "door" ;
-    strips:position "1"^^xsd:integer ;
-    strips:parameterType ww:Openable .
-_:action21 strips:parameter _:parameter24 .
-_:parameter24 a strips:Parameter ;
-    strips:role "key" ;
-    strips:position "2"^^xsd:integer ;
-    strips:parameterType ww:Key .
-_:fact25 a strips:Fact ;
+    strips:role "target" .
+_:action0 strips:precondition _:fact5 .
+_:fact8 a strips:Fact ;
     strips:predicate ww:isOpen ;
-    strips:positive "false"^^xsd:boolean .
-_:fact25 strips:argument _:argument26 .
-_:argument26 a strips:Argument ;
-    strips:position "0"^^xsd:integer ;
-    strips:role "door" .
-_:action21 strips:precondition _:fact25 .
-_:fact27 a strips:Fact ;
-    strips:predicate ww:requiresKey ;
     strips:positive "true"^^xsd:boolean .
-_:fact27 strips:argument _:argument28 .
-_:argument28 a strips:Argument ;
+_:fact8 strips:argument _:argument9 .
+_:argument9 a strips:Argument ;
     strips:position "0"^^xsd:integer ;
-    strips:role "door" .
-_:fact27 strips:argument _:argument29 .
-_:argument29 a strips:Argument ;
+    strips:role "target" .
+_:action0 strips:deleteEffect _:fact8 .
+
+_:action10 a strips:Action ;
+    strips:name "Drink" ;
+    strips:declaredOn ww:Drinkable .
+_:action10 strips:parameter _:parameter11 .
+_:parameter11 a strips:Parameter ;
+    strips:role "target" ;
+    strips:position "0"^^xsd:integer ;
+    strips:methodPosition "-1"^^xsd:integer ;
+    strips:isTarget "true"^^xsd:boolean ;
+    strips:parameterType ww:Drinkable .
+_:action10 strips:parameter _:parameter12 .
+_:parameter12 a strips:Parameter ;
+    strips:role "actor" ;
     strips:position "1"^^xsd:integer ;
-    strips:role "key" .
-_:action21 strips:precondition _:fact27 .
-_:fact30 a strips:Fact ;
+    strips:methodPosition "0"^^xsd:integer ;
+    strips:isTarget "false"^^xsd:boolean ;
+    strips:parameterType ww:Agent .
+_:fact13 a strips:Fact ;
+    strips:predicate ww:isFull ;
+    strips:positive "true"^^xsd:boolean .
+_:fact13 strips:argument _:argument14 .
+_:argument14 a strips:Argument ;
+    strips:position "0"^^xsd:integer ;
+    strips:role "target" .
+_:action10 strips:precondition _:fact13 .
+_:fact15 a strips:Fact ;
     strips:predicate ww:hasInInventory ;
     strips:positive "true"^^xsd:boolean .
-_:fact30 strips:argument _:argument31 .
-_:argument31 a strips:Argument ;
+_:fact15 strips:argument _:argument16 .
+_:argument16 a strips:Argument ;
     strips:position "0"^^xsd:integer ;
     strips:role "actor" .
-_:fact30 strips:argument _:argument32 .
-_:argument32 a strips:Argument ;
+_:fact15 strips:argument _:argument17 .
+_:argument17 a strips:Argument ;
+    strips:position "1"^^xsd:integer ;
+    strips:role "target" .
+_:action10 strips:precondition _:fact15 .
+_:fact18 a strips:Fact ;
+    strips:predicate ww:isFull ;
+    strips:positive "true"^^xsd:boolean .
+_:fact18 strips:argument _:argument19 .
+_:argument19 a strips:Argument ;
+    strips:position "0"^^xsd:integer ;
+    strips:role "target" .
+_:action10 strips:deleteEffect _:fact18 .
+
+_:action20 a strips:Action ;
+    strips:name "Drop" ;
+    strips:declaredOn ww:Pickable .
+_:action20 strips:parameter _:parameter21 .
+_:parameter21 a strips:Parameter ;
+    strips:role "target" ;
+    strips:position "0"^^xsd:integer ;
+    strips:methodPosition "-1"^^xsd:integer ;
+    strips:isTarget "true"^^xsd:boolean ;
+    strips:parameterType ww:Pickable .
+_:action20 strips:parameter _:parameter22 .
+_:parameter22 a strips:Parameter ;
+    strips:role "actor" ;
+    strips:position "1"^^xsd:integer ;
+    strips:methodPosition "0"^^xsd:integer ;
+    strips:isTarget "false"^^xsd:boolean ;
+    strips:parameterType ww:Agent .
+_:fact23 a strips:Fact ;
+    strips:predicate ww:hasInInventory ;
+    strips:positive "true"^^xsd:boolean .
+_:fact23 strips:argument _:argument24 .
+_:argument24 a strips:Argument ;
+    strips:position "0"^^xsd:integer ;
+    strips:role "actor" .
+_:fact23 strips:argument _:argument25 .
+_:argument25 a strips:Argument ;
+    strips:position "1"^^xsd:integer ;
+    strips:role "target" .
+_:action20 strips:precondition _:fact23 .
+_:fact26 a strips:Fact ;
+    strips:predicate ww:hasInInventory ;
+    strips:positive "true"^^xsd:boolean .
+_:fact26 strips:argument _:argument27 .
+_:argument27 a strips:Argument ;
+    strips:position "0"^^xsd:integer ;
+    strips:role "actor" .
+_:fact26 strips:argument _:argument28 .
+_:argument28 a strips:Argument ;
+    strips:position "1"^^xsd:integer ;
+    strips:role "target" .
+_:action20 strips:deleteEffect _:fact26 .
+
+_:action29 a strips:Action ;
+    strips:name "Fill" ;
+    strips:declaredOn ww:Fillable .
+_:action29 strips:parameter _:parameter30 .
+_:parameter30 a strips:Parameter ;
+    strips:role "target" ;
+    strips:position "0"^^xsd:integer ;
+    strips:methodPosition "-1"^^xsd:integer ;
+    strips:isTarget "true"^^xsd:boolean ;
+    strips:parameterType ww:Fillable .
+_:action29 strips:parameter _:parameter31 .
+_:parameter31 a strips:Parameter ;
+    strips:role "actor" ;
+    strips:position "1"^^xsd:integer ;
+    strips:methodPosition "0"^^xsd:integer ;
+    strips:isTarget "false"^^xsd:boolean ;
+    strips:parameterType ww:Agent .
+_:fact32 a strips:Fact ;
+    strips:predicate ww:isFull ;
+    strips:positive "false"^^xsd:boolean .
+_:fact32 strips:argument _:argument33 .
+_:argument33 a strips:Argument ;
+    strips:position "0"^^xsd:integer ;
+    strips:role "target" .
+_:action29 strips:precondition _:fact32 .
+_:fact34 a strips:Fact ;
+    strips:predicate ww:isNear ;
+    strips:positive "true"^^xsd:boolean .
+_:fact34 strips:argument _:argument35 .
+_:argument35 a strips:Argument ;
+    strips:position "0"^^xsd:integer ;
+    strips:role "actor" .
+_:fact34 strips:argument _:argument36 .
+_:argument36 a strips:Argument ;
+    strips:position "1"^^xsd:integer ;
+    strips:role "target" .
+_:action29 strips:precondition _:fact34 .
+_:fact37 a strips:Fact ;
+    strips:predicate ww:isFull ;
+    strips:positive "true"^^xsd:boolean .
+_:fact37 strips:argument _:argument38 .
+_:argument38 a strips:Argument ;
+    strips:position "0"^^xsd:integer ;
+    strips:role "target" .
+_:action29 strips:addEffect _:fact37 .
+
+_:action39 a strips:Action ;
+    strips:name "Lock" ;
+    strips:declaredOn ww:Openable .
+_:action39 strips:parameter _:parameter40 .
+_:parameter40 a strips:Parameter ;
+    strips:role "target" ;
+    strips:position "0"^^xsd:integer ;
+    strips:methodPosition "-1"^^xsd:integer ;
+    strips:isTarget "true"^^xsd:boolean ;
+    strips:parameterType ww:Openable .
+_:action39 strips:parameter _:parameter41 .
+_:parameter41 a strips:Parameter ;
+    strips:role "actor" ;
+    strips:position "1"^^xsd:integer ;
+    strips:methodPosition "0"^^xsd:integer ;
+    strips:isTarget "false"^^xsd:boolean ;
+    strips:parameterType ww:Agent .
+_:action39 strips:parameter _:parameter42 .
+_:parameter42 a strips:Parameter ;
+    strips:role "key" ;
+    strips:position "2"^^xsd:integer ;
+    strips:methodPosition "1"^^xsd:integer ;
+    strips:isTarget "false"^^xsd:boolean ;
+    strips:parameterType ww:Key .
+_:fact43 a strips:Fact ;
+    strips:predicate ww:isLocked ;
+    strips:positive "false"^^xsd:boolean .
+_:fact43 strips:argument _:argument44 .
+_:argument44 a strips:Argument ;
+    strips:position "0"^^xsd:integer ;
+    strips:role "target" .
+_:action39 strips:precondition _:fact43 .
+_:fact45 a strips:Fact ;
+    strips:predicate ww:isOpen ;
+    strips:positive "false"^^xsd:boolean .
+_:fact45 strips:argument _:argument46 .
+_:argument46 a strips:Argument ;
+    strips:position "0"^^xsd:integer ;
+    strips:role "target" .
+_:action39 strips:precondition _:fact45 .
+_:fact47 a strips:Fact ;
+    strips:predicate ww:requiresKey ;
+    strips:positive "true"^^xsd:boolean .
+_:fact47 strips:argument _:argument48 .
+_:argument48 a strips:Argument ;
+    strips:position "0"^^xsd:integer ;
+    strips:role "target" .
+_:fact47 strips:argument _:argument49 .
+_:argument49 a strips:Argument ;
     strips:position "1"^^xsd:integer ;
     strips:role "key" .
-_:action21 strips:precondition _:fact30 .
-_:fact33 a strips:Fact ;
+_:action39 strips:precondition _:fact47 .
+_:fact50 a strips:Fact ;
+    strips:predicate ww:hasInInventory ;
+    strips:positive "true"^^xsd:boolean .
+_:fact50 strips:argument _:argument51 .
+_:argument51 a strips:Argument ;
+    strips:position "0"^^xsd:integer ;
+    strips:role "actor" .
+_:fact50 strips:argument _:argument52 .
+_:argument52 a strips:Argument ;
+    strips:position "1"^^xsd:integer ;
+    strips:role "key" .
+_:action39 strips:precondition _:fact50 .
+_:fact53 a strips:Fact ;
+    strips:predicate ww:isNear ;
+    strips:positive "true"^^xsd:boolean .
+_:fact53 strips:argument _:argument54 .
+_:argument54 a strips:Argument ;
+    strips:position "0"^^xsd:integer ;
+    strips:role "actor" .
+_:fact53 strips:argument _:argument55 .
+_:argument55 a strips:Argument ;
+    strips:position "1"^^xsd:integer ;
+    strips:role "target" .
+_:action39 strips:precondition _:fact53 .
+_:fact56 a strips:Fact ;
+    strips:predicate ww:isLocked ;
+    strips:positive "true"^^xsd:boolean .
+_:fact56 strips:argument _:argument57 .
+_:argument57 a strips:Argument ;
+    strips:position "0"^^xsd:integer ;
+    strips:role "target" .
+_:action39 strips:addEffect _:fact56 .
+
+_:action58 a strips:Action ;
+    strips:name "MoveTo" ;
+    strips:declaredOn ww:MoveableTo .
+_:action58 strips:parameter _:parameter59 .
+_:parameter59 a strips:Parameter ;
+    strips:role "target" ;
+    strips:position "0"^^xsd:integer ;
+    strips:methodPosition "-1"^^xsd:integer ;
+    strips:isTarget "true"^^xsd:boolean ;
+    strips:parameterType ww:MoveableTo .
+_:action58 strips:parameter _:parameter60 .
+_:parameter60 a strips:Parameter ;
+    strips:role "actor" ;
+    strips:position "1"^^xsd:integer ;
+    strips:methodPosition "0"^^xsd:integer ;
+    strips:isTarget "false"^^xsd:boolean ;
+    strips:parameterType ww:Agent .
+_:fact61 a strips:Fact ;
+    strips:predicate ww:canMove ;
+    strips:positive "true"^^xsd:boolean .
+_:fact61 strips:argument _:argument62 .
+_:argument62 a strips:Argument ;
+    strips:position "0"^^xsd:integer ;
+    strips:role "actor" .
+_:action58 strips:precondition _:fact61 .
+_:fact63 a strips:Fact ;
+    strips:predicate ww:canReach ;
+    strips:positive "true"^^xsd:boolean .
+_:fact63 strips:argument _:argument64 .
+_:argument64 a strips:Argument ;
+    strips:position "0"^^xsd:integer ;
+    strips:role "actor" .
+_:fact63 strips:argument _:argument65 .
+_:argument65 a strips:Argument ;
+    strips:position "1"^^xsd:integer ;
+    strips:role "target" .
+_:action58 strips:precondition _:fact63 .
+_:fact66 a strips:Fact ;
+    strips:predicate ww:isNear ;
+    strips:positive "true"^^xsd:boolean .
+_:fact66 strips:argument _:argument67 .
+_:argument67 a strips:Argument ;
+    strips:position "0"^^xsd:integer ;
+    strips:role "actor" .
+_:fact66 strips:argument _:argument68 .
+_:argument68 a strips:Argument ;
+    strips:position "1"^^xsd:integer ;
+    strips:role "target" .
+_:action58 strips:addEffect _:fact66 .
+
+_:action69 a strips:Action ;
+    strips:name "Open" ;
+    strips:declaredOn ww:Openable .
+_:action69 strips:parameter _:parameter70 .
+_:parameter70 a strips:Parameter ;
+    strips:role "target" ;
+    strips:position "0"^^xsd:integer ;
+    strips:methodPosition "-1"^^xsd:integer ;
+    strips:isTarget "true"^^xsd:boolean ;
+    strips:parameterType ww:Openable .
+_:action69 strips:parameter _:parameter71 .
+_:parameter71 a strips:Parameter ;
+    strips:role "actor" ;
+    strips:position "1"^^xsd:integer ;
+    strips:methodPosition "0"^^xsd:integer ;
+    strips:isTarget "false"^^xsd:boolean ;
+    strips:parameterType ww:Agent .
+_:fact72 a strips:Fact ;
+    strips:predicate ww:isOpen ;
+    strips:positive "false"^^xsd:boolean .
+_:fact72 strips:argument _:argument73 .
+_:argument73 a strips:Argument ;
+    strips:position "0"^^xsd:integer ;
+    strips:role "target" .
+_:action69 strips:precondition _:fact72 .
+_:fact74 a strips:Fact ;
+    strips:predicate ww:isLocked ;
+    strips:positive "false"^^xsd:boolean .
+_:fact74 strips:argument _:argument75 .
+_:argument75 a strips:Argument ;
+    strips:position "0"^^xsd:integer ;
+    strips:role "target" .
+_:action69 strips:precondition _:fact74 .
+_:fact76 a strips:Fact ;
+    strips:predicate ww:isNear ;
+    strips:positive "true"^^xsd:boolean .
+_:fact76 strips:argument _:argument77 .
+_:argument77 a strips:Argument ;
+    strips:position "0"^^xsd:integer ;
+    strips:role "actor" .
+_:fact76 strips:argument _:argument78 .
+_:argument78 a strips:Argument ;
+    strips:position "1"^^xsd:integer ;
+    strips:role "target" .
+_:action69 strips:precondition _:fact76 .
+_:fact79 a strips:Fact ;
     strips:predicate ww:isOpen ;
     strips:positive "true"^^xsd:boolean .
-_:fact33 strips:argument _:argument34 .
-_:argument34 a strips:Argument ;
+_:fact79 strips:argument _:argument80 .
+_:argument80 a strips:Argument ;
     strips:position "0"^^xsd:integer ;
-    strips:role "door" .
-_:action21 strips:addEffect _:fact33 .
+    strips:role "target" .
+_:action69 strips:addEffect _:fact79 .
 
-_:action35 a strips:Action .
-_:action35 strips:name "PickUp" .
-_:action35 strips:declaredOn ww:Pickable .
-_:action35 strips:parameter _:parameter36 .
-_:parameter36 a strips:Parameter ;
-    strips:role "actor" ;
+_:action81 a strips:Action ;
+    strips:name "PickUp" ;
+    strips:declaredOn ww:Pickable .
+_:action81 strips:parameter _:parameter82 .
+_:parameter82 a strips:Parameter ;
+    strips:role "target" ;
     strips:position "0"^^xsd:integer ;
-    strips:parameterType ww:Agent .
-_:action35 strips:parameter _:parameter37 .
-_:parameter37 a strips:Parameter ;
-    strips:role "item" ;
-    strips:position "1"^^xsd:integer ;
+    strips:methodPosition "-1"^^xsd:integer ;
+    strips:isTarget "true"^^xsd:boolean ;
     strips:parameterType ww:Pickable .
-_:fact38 a strips:Fact ;
-    strips:predicate ww:isPickedUp ;
+_:action81 strips:parameter _:parameter83 .
+_:parameter83 a strips:Parameter ;
+    strips:role "actor" ;
+    strips:position "1"^^xsd:integer ;
+    strips:methodPosition "0"^^xsd:integer ;
+    strips:isTarget "false"^^xsd:boolean ;
+    strips:parameterType ww:Agent .
+_:fact84 a strips:Fact ;
+    strips:predicate ww:hasInInventory ;
     strips:positive "false"^^xsd:boolean .
-_:fact38 strips:argument _:argument39 .
-_:argument39 a strips:Argument ;
+_:fact84 strips:argument _:argument85 .
+_:argument85 a strips:Argument ;
     strips:position "0"^^xsd:integer ;
-    strips:role "item" .
-_:action35 strips:precondition _:fact38 .
-_:fact40 a strips:Fact ;
-    strips:predicate ww:isPickedUp ;
+    strips:role "actor" .
+_:fact84 strips:argument _:argument86 .
+_:argument86 a strips:Argument ;
+    strips:position "1"^^xsd:integer ;
+    strips:role "target" .
+_:action81 strips:precondition _:fact84 .
+_:fact87 a strips:Fact ;
+    strips:predicate ww:isNear ;
     strips:positive "true"^^xsd:boolean .
-_:fact40 strips:argument _:argument41 .
-_:argument41 a strips:Argument ;
+_:fact87 strips:argument _:argument88 .
+_:argument88 a strips:Argument ;
     strips:position "0"^^xsd:integer ;
-    strips:role "item" .
-_:action35 strips:addEffect _:fact40 .
+    strips:role "actor" .
+_:fact87 strips:argument _:argument89 .
+_:argument89 a strips:Argument ;
+    strips:position "1"^^xsd:integer ;
+    strips:role "target" .
+_:action81 strips:precondition _:fact87 .
+_:fact90 a strips:Fact ;
+    strips:predicate ww:hasInInventory ;
+    strips:positive "true"^^xsd:boolean .
+_:fact90 strips:argument _:argument91 .
+_:argument91 a strips:Argument ;
+    strips:position "0"^^xsd:integer ;
+    strips:role "actor" .
+_:fact90 strips:argument _:argument92 .
+_:argument92 a strips:Argument ;
+    strips:position "1"^^xsd:integer ;
+    strips:role "target" .
+_:action81 strips:addEffect _:fact90 .
+
+_:action93 a strips:Action ;
+    strips:name "Unlock" ;
+    strips:declaredOn ww:Openable .
+_:action93 strips:parameter _:parameter94 .
+_:parameter94 a strips:Parameter ;
+    strips:role "target" ;
+    strips:position "0"^^xsd:integer ;
+    strips:methodPosition "-1"^^xsd:integer ;
+    strips:isTarget "true"^^xsd:boolean ;
+    strips:parameterType ww:Openable .
+_:action93 strips:parameter _:parameter95 .
+_:parameter95 a strips:Parameter ;
+    strips:role "actor" ;
+    strips:position "1"^^xsd:integer ;
+    strips:methodPosition "0"^^xsd:integer ;
+    strips:isTarget "false"^^xsd:boolean ;
+    strips:parameterType ww:Agent .
+_:action93 strips:parameter _:parameter96 .
+_:parameter96 a strips:Parameter ;
+    strips:role "key" ;
+    strips:position "2"^^xsd:integer ;
+    strips:methodPosition "1"^^xsd:integer ;
+    strips:isTarget "false"^^xsd:boolean ;
+    strips:parameterType ww:Key .
+_:fact97 a strips:Fact ;
+    strips:predicate ww:isLocked ;
+    strips:positive "true"^^xsd:boolean .
+_:fact97 strips:argument _:argument98 .
+_:argument98 a strips:Argument ;
+    strips:position "0"^^xsd:integer ;
+    strips:role "target" .
+_:action93 strips:precondition _:fact97 .
+_:fact99 a strips:Fact ;
+    strips:predicate ww:isOpen ;
+    strips:positive "false"^^xsd:boolean .
+_:fact99 strips:argument _:argument100 .
+_:argument100 a strips:Argument ;
+    strips:position "0"^^xsd:integer ;
+    strips:role "target" .
+_:action93 strips:precondition _:fact99 .
+_:fact101 a strips:Fact ;
+    strips:predicate ww:requiresKey ;
+    strips:positive "true"^^xsd:boolean .
+_:fact101 strips:argument _:argument102 .
+_:argument102 a strips:Argument ;
+    strips:position "0"^^xsd:integer ;
+    strips:role "target" .
+_:fact101 strips:argument _:argument103 .
+_:argument103 a strips:Argument ;
+    strips:position "1"^^xsd:integer ;
+    strips:role "key" .
+_:action93 strips:precondition _:fact101 .
+_:fact104 a strips:Fact ;
+    strips:predicate ww:hasInInventory ;
+    strips:positive "true"^^xsd:boolean .
+_:fact104 strips:argument _:argument105 .
+_:argument105 a strips:Argument ;
+    strips:position "0"^^xsd:integer ;
+    strips:role "actor" .
+_:fact104 strips:argument _:argument106 .
+_:argument106 a strips:Argument ;
+    strips:position "1"^^xsd:integer ;
+    strips:role "key" .
+_:action93 strips:precondition _:fact104 .
+_:fact107 a strips:Fact ;
+    strips:predicate ww:isNear ;
+    strips:positive "true"^^xsd:boolean .
+_:fact107 strips:argument _:argument108 .
+_:argument108 a strips:Argument ;
+    strips:position "0"^^xsd:integer ;
+    strips:role "actor" .
+_:fact107 strips:argument _:argument109 .
+_:argument109 a strips:Argument ;
+    strips:position "1"^^xsd:integer ;
+    strips:role "target" .
+_:action93 strips:precondition _:fact107 .
+_:fact110 a strips:Fact ;
+    strips:predicate ww:isLocked ;
+    strips:positive "true"^^xsd:boolean .
+_:fact110 strips:argument _:argument111 .
+_:argument111 a strips:Argument ;
+    strips:position "0"^^xsd:integer ;
+    strips:role "target" .
+_:action93 strips:deleteEffect _:fact110 .
 

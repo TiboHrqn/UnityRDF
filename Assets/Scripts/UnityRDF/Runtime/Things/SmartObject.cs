@@ -2,7 +2,7 @@ using UnityEngine;
 using System;
 
 [OntologyClass("SmartObject")]
-public abstract class SmartObject : MonoBehaviour 
+public abstract class SmartObject : MonoBehaviour, IMoveableTo
 {
     [OntologyProperty("id")]
     public string Id { get; private set; }
@@ -14,4 +14,10 @@ public abstract class SmartObject : MonoBehaviour
     {
         Id = Guid.NewGuid().ToString();
     }
+
+    public ActionResult MoveTo(Agent actor)
+    {
+        return ActionResult.Fail(ActionStatus.NotImplemented, "todo");
+    }
 }
+

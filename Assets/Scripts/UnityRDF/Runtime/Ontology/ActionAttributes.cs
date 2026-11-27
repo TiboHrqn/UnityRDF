@@ -1,6 +1,4 @@
-
-using System;
-
+using System; 
 [AttributeUsage(AttributeTargets.Method)]
 public class OntologyActionAttribute : Attribute
 {
@@ -13,15 +11,15 @@ public class OntologyActionAttribute : Attribute
 }
 
 [AttributeUsage(AttributeTargets.Method, AllowMultiple = true)]
-public class OntologyParameterAttribute : Attribute
+public class OntologyActionParameterAttribute : Attribute
 {
     public string Role { get; }
     public Type ParameterType { get; }
+    public int Position { get; }
 
-    public OntologyParameterAttribute(string role, Type parameterType)
+    public OntologyActionParameterAttribute(string role, Type parameterType, int position)
     {
-        Role = role;
-        ParameterType = parameterType;
+        Role = role; ParameterType = parameterType; Position = position;
     }
 }
 
@@ -29,15 +27,13 @@ public class OntologyParameterAttribute : Attribute
 public class OntologyPreConditionAttribute : Attribute
 {
     public string Predicate { get; }
-
     public string[] Arguments { get; }
+    public bool IsPositive { get; }
 
-    public bool ConditionType { get; }
-
-    public OntologyPreConditionAttribute(bool conditionType , string predicate , params string[] arguments)
+    public OntologyPreConditionAttribute(bool isPositive, string predicate, params string[] arguments)
     {
         Predicate = predicate;
-        ConditionType = conditionType;
+        IsPositive = isPositive;
         Arguments = arguments;
     }
 }
@@ -48,7 +44,7 @@ public class OntologyAddEffectAttribute : Attribute
     public string Predicate { get; }
     public string[] Arguments { get; }
 
-    public OntologyAddEffectAttribute(string predicate , params string[] arguments)
+    public OntologyAddEffectAttribute(string predicate, params string[] arguments)
     {
         Predicate = predicate;
         Arguments = arguments;
@@ -61,7 +57,7 @@ public class OntologyDeleteEffectAttribute : Attribute
     public string Predicate { get; }
     public string[] Arguments { get; }
 
-    public OntologyDeleteEffectAttribute(string predicate , params string[] arguments)
+    public OntologyDeleteEffectAttribute(string predicate, params string[] arguments)
     {
         Predicate = predicate;
         Arguments = arguments;

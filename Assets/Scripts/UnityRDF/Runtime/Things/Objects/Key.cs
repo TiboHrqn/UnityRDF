@@ -1,18 +1,26 @@
+
 using UnityEngine;
 
 [OntologyClass("Key")]
 public class Key : SmartObject, IPickable
 {
-    [OntologyProperty("isPickedUp")]
-    public bool IsPickedUp { get; private set; }
-
-    public void PickUp(Agent actor)
+    public ActionResult PickUp(Agent actor)
     {
-        IsPickedUp = true;
+        if (!actor.IsNear(this))
+            return ActionResult.Fail(ActionStatus.OutOfRange, "Bottle is too far away.");
+
+        actor.AddToInventory(this);
+        return ActionResult.Success("Bottle picked up.");
     }
 
-    public void Drop(Agent actor)
+    public ActionResult Drop(Agent actor)
     {
-        IsPickedUp = false;
+        if (!actor.HasInInventory(this))
+            return ActionResult.Fail(ActionStatus.InvalidState, "Bottle is not in inventory.");
+
+        actor.RemoveFromInventory(this);
+
+        return ActionResult.Success("Bottle dropped.");
     }
+    
 }
